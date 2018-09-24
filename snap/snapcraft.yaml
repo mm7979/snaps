@@ -1,0 +1,41 @@
+name: wiringpi
+version: '2.46'
+summary: Use wiringpi with Ubuntu Core
+description: |
+  Wiring Pi GPIO libraries
+
+grade: devel
+confinement: devmode
+
+apps:
+  test1:
+    command: bin/test1
+
+parts:
+  wiringpi:
+    stage-packages: [libdb5.3]
+    # first choice for the source - original author
+    source:   git://git.drogon.net/wiringPi
+    # alternate repo for the source - clone of authors code
+    #   source: https://github.com/WiringPi/WiringPi.git
+    source-type: git
+    source-subdir: WiringPi
+    # wiringpi uses a python script for building and does not place
+    # resulting libraries where snapcraft expects them so we use a
+    # custom build to accommodate that
+    # Note: relative base path is parts/wiringpi/build
+    override-build: |
+      ./build
+      cp devLib/libwiringPiDev.so.2.46 ../install/usr/lib/
+      cp wiringPi/libwiringPi.so.2.46  ../install/usr/lib/
+      cd ../install/usr/lib/
+      ln -s libwiringPi.so.2.46 libwiringPi.so
+    # See 'snapcraft plugins'
+    plugin: nil
+
+  test1:
+    source: .
+    stage-packages: [mcrypt]
+    plugin: make
+    after: [wiringpi]
+
